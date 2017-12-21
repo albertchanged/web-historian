@@ -76,9 +76,6 @@ exports.downloadUrls = function(urls) {
   //     console.log('Cannot write');
   //   }
   // });
-  exports.readListOfUrls(function(urlList) {
-    
-  })
   _.each(urls, function(url) {
     // if (!exports.paths.archivedSites.includes(url)) {
     // console.log('yes');
