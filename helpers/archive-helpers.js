@@ -2,7 +2,8 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var http = require('http');
-
+var https = require('https');
+var request = require('request');
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
  * Consider using the `paths` object below to store frequently used file paths. This way,
@@ -14,7 +15,6 @@ exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
   list: path.join(__dirname, '../archives/sites.txt')
-  // index: path.join(__dirname, '../public/index.html')
 };
 
 // Used for stubbing paths for tests, do not modify
@@ -61,21 +61,21 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urls) { //done on a cron cycle
-  // exports.readListOfUrls()
   _.each(urls, function(url) {
-  // http get url
-    http.get('http://' + url, function(res) {
-      var body = [];
-      res.on('data', (chunk) => {
-        body.push(chunk);
+    if (url.length > 0 && url !== '') {
+      request.get('http://' + url).on('response', function(response) {
+        var body = [];
+        response.on('data', (chunk) => {
+          body.push(chunk);
+        });
+        response.on('error', () => {
+          console.log('Cannot download URL');
+        });
+        response.on('end', () => {
+          fs.writeFile(exports.paths.archivedSites + '/' + url, body);
+        });
       });
-      res.on('error', () => {
-        console.log('Cannot download URL');
-      });
-      res.on('end', () => {
-        fs.writeFile(exports.paths.archivedSites + '/' + url, body);
-        fs.truncate(exports.paths.list, 0);
-      });
-    });
+    }
   });
+  fs.truncate(exports.paths.list, 0);
 };
